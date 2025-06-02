@@ -2,12 +2,14 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
-import error from './middlewares/error.mjs';
+import globalErrorHandler from './middlewares/error.mjs';
+import connectDB from './db/conn.mjs';
 
 //setups
 dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3001
+connectDB();
 
 
 //middlewares
@@ -16,7 +18,7 @@ app.use(cors());
 
 
 //error handling middleware
-app.use(error);
+app.use(globalErrorHandler);
 
 //listener
 app.listen(PORT, ()=>{
