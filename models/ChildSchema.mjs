@@ -17,4 +17,4 @@ const childSchema = new mongoose.Schema({
     parent: { type: mongoose.Schema.Types.ObjectId, ref: 'Parent' } 
 })
 
-export default mongoose.model('Child', childSchema)
+export default mongoose.model('Child', childSchema);
