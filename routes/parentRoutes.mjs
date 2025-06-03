@@ -122,25 +122,32 @@ router.get('/:parentId', async (req, res, next) => {
 // Deleting an existing reward
 router.delete('/:parentId/rewards/:rewardId', async (req, res, next) => {
     try {
-        const { parentId, rewardId } = req.params;
-        const parent = await Parent.findById(parentId);
-        if (!parent) {
-            const error = new Error('Parent not found!');
-            error.status = 404;
-            return next(error);
-        }
-        const initialLength = parent.rewards.length;
-        parent.rewards = parent.rewards.filter(reward => reward._id.toString() !== rewardId);
-        if (parent.rewards.length === initialLength) {
-            const error = new Error('Reward not found!');
-            error.status = 404;
-            return next(error);
-        }
-        await parent.save();
-        res.status(200).json({ message: 'Reward deleted successfully' });
+      const { parentId, rewardId } = req.params;
+      const parent = await Parent.findById(parentId);
+      if (!parent) {
+        const error = new Error('Parent not found!');
+        error.status = 404;
+        return next(error);
+      }
+  
+      const reward = parent.rewards.id(rewardId);
+      if (!reward) {
+        const error = new Error('Reward not found!');
+        error.status = 404;
+        return next(error);
+      }
+  
+      if (reward.deleted) {
+        return res.status(400).json({ message: 'Reward already deleted' });
+      }
+  
+      reward.deleted = true;  
+      await parent.save();
+  
+      res.status(200).json({ message: 'Reward deleted successfully' });
     } catch (error) {
-        next(error);
+      next(error);
     }
-});
+  });
 
 export default router;

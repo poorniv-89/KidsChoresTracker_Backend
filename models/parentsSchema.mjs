@@ -1,6 +1,6 @@
 import mongoose, { mongo } from "mongoose";
 
-const parentSchema  = new mongoose.Schema({
+const parentSchema = new mongoose.Schema({
     name: {
         type: String,
         required: true
@@ -18,27 +18,35 @@ const parentSchema  = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId, ref: 'Child'
     }],
     chores: [{
-        title: { 
-            type: String, 
-            required: true 
+        title: {
+            type: String,
+            required: true
         },
         description: String,
-        points: { 
-            type: Number, 
-            required: true 
+        points: {
+            type: Number,
+            required: true
         },
+        deleted: {
+            type: Boolean,
+            default: false
+        }
     }],
     rewards: [{
-        title: { 
-            type: String, 
-            required: true 
+        title: {
+            type: String,
+            required: true
         },
         description: String,
-        pointsCost: { 
-            type: Number, 
-            required: true 
+        pointsCost: {
+            type: Number,
+            required: true
         },
-      }],
+        deleted: {
+            type: Boolean,
+            default: false
+        }
+    }],
 })
 
 export default mongoose.model('Parent', parentSchema);

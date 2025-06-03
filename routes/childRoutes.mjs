@@ -152,6 +152,11 @@ router.patch('/:childId/redeem', async (req, res, next) => {
       }
   
       child.points -= reward.pointsCost;
+      child.redeemedRewards.push({
+        title: reward.title,
+        pointsCost: reward.pointsCost,
+        dateRedeemed: new Date()
+      });
       await child.save();
   
       res.status(200).json({
@@ -163,4 +168,5 @@ router.patch('/:childId/redeem', async (req, res, next) => {
     }
   });
 
+  
 export default router;

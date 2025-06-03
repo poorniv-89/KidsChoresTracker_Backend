@@ -14,7 +14,15 @@ const childSchema = new mongoose.Schema({
         dateCompleted: Date,
         pointsEarned: Number,
     }],
-    parent: { type: mongoose.Schema.Types.ObjectId, ref: 'Parent' } 
+    redeemedRewards: [{
+        title: String,
+        pointsCost: Number,
+        dateRedeemed: Date,
+    }],
+    parent: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Parent'
+    }
 })
 
 export default mongoose.model('Child', childSchema);
