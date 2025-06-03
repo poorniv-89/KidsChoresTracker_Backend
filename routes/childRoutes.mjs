@@ -158,7 +158,6 @@ router.patch('/:childId/redeem', async (req, res, next) => {
         dateRedeemed: new Date()
       });
       await child.save();
-  
       res.status(200).json({
         message: `Reward "${reward.title}" redeemed successfully!`,
         remainingPoints: child.points,
@@ -168,5 +167,32 @@ router.patch('/:childId/redeem', async (req, res, next) => {
     }
   });
 
-  
+  //Getting all the available chores and rewards possible for the child
+  router.get('/:childId/available', async (req, res, next) => {
+    try {
+      const { childId } = req.params;
+      const child = await Child.findById(childId).populate('parent');
+      if (!child) {
+        const error = new Error('Child not found');
+        error.status = 404;
+        return next(error);
+      }
+      const parent = child.parent;
+      if (!parent) {
+        const error = new Error('Parent not found for this child');
+        error.status = 404;
+        return next(error);
+      }
+      const rewards = parent.rewards.filter(reward => !reward.deleted);
+      res.status(200).json({
+        message: 'Available chores and rewards for child',
+        chores,
+        rewards,
+        childPoints: child.points
+      });
+    } catch (error) {
+      next(error);
+    }
+  });
+
 export default router;

@@ -150,4 +150,25 @@ router.delete('/:parentId/rewards/:rewardId', async (req, res, next) => {
     }
   });
 
+// Get all rewards and chores for a specific parent
+router.get('/:parentId/tasks', async (req, res, next) => {
+    try {
+      const { parentId } = req.params;
+      const parent = await Parent.findById(parentId);
+  
+      if (!parent) {
+        const error = new Error('Parent not found!');
+        error.status = 404;
+        return next(error);
+      }
+      res.status(200).json({
+        message: 'Chores and Rewards retrieved successfully',
+        chores: parent.chores,
+        rewards: parent.rewards,
+      });
+    } catch (err) {
+      next(err);
+    }
+  });
+
 export default router;
