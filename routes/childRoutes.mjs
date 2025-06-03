@@ -60,7 +60,7 @@ router.get('/:childId', async (req, res, next) => {
     }
 })
 
-
+//Updating chore completion and adding the points to the child
 router.put('/:childId/choreComplete', async (req, res, next) => {
     try {
         const { childId } = req.params;
@@ -118,5 +118,49 @@ router.put('/:childId/choreComplete', async (req, res, next) => {
     }
 });
 
+//Redeeming rewards for the child and taking away the points
+router.patch('/:childId/redeem', async (req, res, next) => {
+    try {
+      const { childId } = req.params;
+      const { rewardId } = req.body;
+  
+      const child = await Child.findById(childId);
+      if (!child) {
+        const error = new Error('Child not found');
+        error.status = 404;
+        return next(error);
+      }
+  
+      const parent = await Parent.findOne({ kids: childId });
+      if (!parent) {
+        const error = new Error('Parent not found');
+        error.status = 404;
+        return next(error);
+      }
+  
+      const reward = parent.rewards.id(rewardId);
+      if (!reward) {
+        const error = new Error('Reward not found');
+        error.status = 404;
+        return next(error);
+      }
+  
+      if (child.points < reward.pointsCost) {
+        const error = new Error('Not enough points to redeem reward');
+        error.status = 404;
+        return next(error);
+      }
+  
+      child.points -= reward.pointsCost;
+      await child.save();
+  
+      res.status(200).json({
+        message: `Reward "${reward.title}" redeemed successfully!`,
+        remainingPoints: child.points,
+      });
+    } catch (error) {
+      next(error);
+    }
+  });
 
 export default router;
