@@ -5,7 +5,7 @@ import cors from 'cors';
 import globalErrorHandler from './middlewares/error.mjs';
 import connectDB from './db/conn.mjs';
 import parentRoutes from './routes/parentRoutes.mjs';
-// import childRoutes from './routes/childRoutes.mjs';
+import childRoutes from './routes/childRoutes.mjs';
 
 //setups
 dotenv.config();
@@ -20,7 +20,7 @@ app.use(cors());
 
 //routes
 app.use('/api/parent', parentRoutes);
-// app.use('/api/child', childRoutes);
+app.use('/api/child', childRoutes);
 
 
 //error handling middleware

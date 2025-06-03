@@ -123,23 +123,19 @@ router.get('/:parentId', async (req, res, next) => {
 router.delete('/:parentId/rewards/:rewardId', async (req, res, next) => {
     try {
         const { parentId, rewardId } = req.params;
-
         const parent = await Parent.findById(parentId);
         if (!parent) {
             const error = new Error('Parent not found!');
             error.status = 404;
             return next(error);
         }
-
         const initialLength = parent.rewards.length;
         parent.rewards = parent.rewards.filter(reward => reward._id.toString() !== rewardId);
-
         if (parent.rewards.length === initialLength) {
             const error = new Error('Reward not found!');
             error.status = 404;
             return next(error);
         }
-
         await parent.save();
         res.status(200).json({ message: 'Reward deleted successfully' });
     } catch (error) {

@@ -13,7 +13,8 @@ const childSchema = new mongoose.Schema({
         choreTitle: String,
         dateCompleted: Date,
         pointsEarned: Number,
-    }]
+    }],
+    parent: { type: mongoose.Schema.Types.ObjectId, ref: 'Parent' } 
 })
 
 export default mongoose.model('Child', childSchema)
