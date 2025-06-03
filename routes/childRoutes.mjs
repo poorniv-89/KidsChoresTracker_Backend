@@ -41,7 +41,25 @@ router.post('/', async (req, res, next) => {
   
 
 //Getting child Profile to be displayed
-//  router.get('/:childId')
+ router.get('/:childId', async(req, res, next)=>{
+    try {
+        const {childId} = req.params;
+        const child = await Child.findById(childId);
+        if(!child)
+        {
+            const error = new Error('Child profile not found');
+            error.status = 404;
+            return next(error); 
+        }
+        return res.status(200).json({
+            message: "Child profile found!",
+            details: child
+        })
+
+    } catch (error) {
+        next(error);
+    }
+ })
 
 
 export default router;
