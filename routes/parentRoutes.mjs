@@ -5,7 +5,7 @@ const router = express.Router();
 
 //Adding new parent
 router.post('/', async (req, res, next) => {
-
+try{
     const existingParent = await Parent.findOne({ email: req.body.email });
     if (existingParent) {
         const error = new Error('You are already a registered user!');
@@ -24,6 +24,11 @@ router.post('/', async (req, res, next) => {
             email: newParent.email
         }
     });
+}
+catch(err)
+{
+    next(err);
+}
 });
 
 //Adding new chores to existing parent 
@@ -61,6 +66,39 @@ router.post('/:parentId/chores', async (req, res, next) => {
     }
 })
 
+//adding new rewards to an existing parent
+router.post('/:parentId/rewards', async (req, res, next) => {
+    try{
+    const { parentId } = req.params;
+    const newRewards = req.body;
 
+    const rewardsToAdd = Array.isArray(newRewards) ? newRewards : [newRewards];
+    const parent = await Parent.findById(parentId);
+    if (!parent) {
+        const error = new Error('Parent not found!');
+        error.status = 404;
+        return next(error);
+    }
+
+    if (!rewardsToAdd.length) {
+        const error = new Error('Please provide at least one rewards to add!');
+        error.status = 400;
+        return next(error);
+        
+    }
+
+    parent.rewards.push(...rewardsToAdd);
+    await parent.save();
+
+    res.status(200).json({
+        message: 'Rewards added successfully',
+        rewards: parent.rewards
+      });
+    }
+    catch(err)
+    {
+        next(err);
+    }
+})
 
 export default router;
