@@ -159,7 +159,7 @@ router.patch('/:childId/redeem', async (req, res, next) => {
       });
       await child.save();
       res.status(200).json({
-        message: `Reward "${reward.title}" redeemed successfully!`,
+        message: `Reward '${reward.title}' redeemed successfully!`,
         remainingPoints: child.points,
       });
     } catch (error) {
