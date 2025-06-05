@@ -13,7 +13,21 @@ const childSchema = new mongoose.Schema({
         choreTitle: String,
         dateCompleted: Date,
         pointsEarned: Number,
+        status: {
+            type: String,
+            enum: ['pending', 'approved', 'rejected'],
+            default: 'pending'
+          },
+        rejectionComment: String
     }],
+    pendingRewards: [{
+        rewardId: mongoose.Schema.Types.ObjectId,
+        title: String,
+        pointsCost: Number,
+        dateRequested: Date,
+        approved: { type: Boolean, default: false },
+        rejected: { type: Boolean, default: false },
+      }],
     redeemedRewards: [{
         title: String,
         pointsCost: Number,
