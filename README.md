@@ -20,7 +20,7 @@ Redeem rewards using accumulated points (pending approval)
 View approved/rejected chores and redeemed rewards
 Check available tasks and track current point balance
 
-API Routes Table
+**__API Routes Table__**
 
 **Parent Routes**
 

@@ -60,7 +60,7 @@ router.get('/:childId', async (req, res, next) => {
   }
 })
 
-//Updating chore completion and adding the points to the child
+//Updating chore completion and sending for approval
 router.put('/:childId/choreComplete', async (req, res, next) => {
   try {
     const { childId } = req.params;
@@ -110,7 +110,7 @@ router.put('/:childId/choreComplete', async (req, res, next) => {
        await child.save();
 
     res.status(200).json({
-      message: 'Chore marked as completed',
+      message: 'Chore marked as pending for approval',
       updatedPoints: child.points,
       completedChores: child.completedChores
     });
