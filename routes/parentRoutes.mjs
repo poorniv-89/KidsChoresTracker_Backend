@@ -31,6 +31,38 @@ router.post('/', async (req, res, next) => {
   }
 });
 
+// Parent login route
+router.post('/signin', async (req, res, next) => {
+  try {
+    const { email, password } = req.body;
+
+    const parent = await Parent.findOne({ email });
+    if (!parent) {
+      const error = new Error('Parent not found');
+      error.status = 404;
+      return next(error);
+    }
+
+    if (parent.password !== password) {
+      const error = new Error('Invalid credentials');
+      error.status = 401;
+      return next(error);
+    }
+
+    res.status(200).json({
+      message: 'Login successful',
+      parent: {
+        id: parent._id,
+        name: parent.name,
+        email: parent.email,
+      }
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+
 //Adding new chores to existing parent 
 router.post('/:parentId/chores', async (req, res, next) => {
   try {
