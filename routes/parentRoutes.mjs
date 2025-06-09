@@ -135,6 +135,7 @@ router.post('/:parentId/rewards', async (req, res, next) => {
 router.get('/:parentId', async (req, res, next) => {
   try {
     const { parentId } = req.params;
+
     const parent = await Parent.findById(parentId).select('-password');
     if (!parent) {
       const error = new Error('Parent not found!');
@@ -142,15 +143,36 @@ router.get('/:parentId', async (req, res, next) => {
       return next(error);
     }
 
+    // Fetch all children of the parent
+    const children = await Child.find({ parent: parentId });
+
+    // Extract pending chores from all children
+    const pendingChores = [];
+
+    children.forEach(child => {
+      child.completedChores.forEach((chore, index) => {
+        if (chore.status === 'pending') {
+          pendingChores.push({
+            kidName: child.name,
+            childId: child._id,
+            choreTitle: chore.choreTitle,
+            dateCompleted: chore.dateCompleted,
+            pointsEarned: chore.pointsEarned,
+            choreIndex: index
+          });
+        }
+      });
+    });
+
     res.status(200).json({
       message: "Parent Details retrieved successfully",
-      parentDetails: parent
-    })
-  }
-  catch (err) {
+      parentDetails: parent,
+      pendingChores: pendingChores
+    });
+  } catch (err) {
     next(err);
   }
-})
+});
 
 //Approving a pending chore
 router.post('/:parentId/approveChore', async (req, res, next) => {
