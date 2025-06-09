@@ -155,10 +155,10 @@ router.get('/:parentId', async (req, res, next) => {
           pendingChores.push({
             kidName: child.name,
             childId: child._id,
+            choreId: chore._id,
             choreTitle: chore.choreTitle,
             dateCompleted: chore.dateCompleted,
             pointsEarned: chore.pointsEarned,
-            choreIndex: index
           });
         }
       });
