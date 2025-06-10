@@ -29,10 +29,12 @@ router.post('/', async (req, res, next) => {
 
     parent.kids.push(child._id);
     await parent.save();
+    const childLink = `http://localhost:5173/child/${child._id}`;
 
     res.status(201).json({
       message: "New Child Profile created!",
-      child
+      child,
+      childLink
     });
   } catch (err) {
     next(err);
@@ -165,7 +167,10 @@ router.patch('/:childId/redeem', async (req, res, next) => {
 router.get('/:childId/available', async (req, res, next) => {
   try {
     const { childId } = req.params;
-    const child = await Child.findById(childId).populate('parent');
+    const child = await Child.findById(childId).populate({
+      path: 'parent',
+      populate: ['chores', 'rewards']
+    });
     if (!child) {
       const error = new Error('Child not found');
       error.status = 404;

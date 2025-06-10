@@ -98,59 +98,24 @@ router.post('/:parentId/chores', async (req, res, next) => {
 })
 
 //adding new rewards to an existing parent
-router.post('/:parentId/rewards', async (req, res, next) => {
-  try {
-    const { parentId } = req.params;
-    const newRewards = req.body;
-
-    const rewardsToAdd = Array.isArray(newRewards) ? newRewards : [newRewards];
-    const parent = await Parent.findById(parentId);
-    if (!parent) {
-      const error = new Error('Parent not found!');
-      error.status = 404;
-      return next(error);
-    }
-
-    if (!rewardsToAdd.length) {
-      const error = new Error('Please provide at least one rewards to add!');
-      error.status = 400;
-      return next(error);
-
-    }
-
-    parent.rewards.push(...rewardsToAdd);
-    await parent.save();
-
-    res.status(200).json({
-      message: 'Rewards added successfully',
-      rewards: parent.rewards
-    });
-  }
-  catch (err) {
-    next(err);
-  }
-})
-
-//Getting the parent profile to display
 router.get('/:parentId', async (req, res, next) => {
   try {
     const { parentId } = req.params;
 
-    const parent = await Parent.findById(parentId).select('-password');
+    // Find parent and populate their kids
+    const parent = await Parent.findById(parentId)
+      .populate('kids') 
+      .select('-password');
+
     if (!parent) {
-      const error = new Error('Parent not found!');
-      error.status = 404;
-      return next(error);
+      return res.status(404).json({ message: 'Parent not found!' });
     }
+    const children = parent.kids || [];
 
-    // Fetch all children of the parent
-    const children = await Child.find({ parent: parentId });
-
-    // Extract pending chores from all children
     const pendingChores = [];
 
     children.forEach(child => {
-      child.completedChores.forEach((chore, index) => {
+      child.completedChores?.forEach((chore) => {
         if (chore.status === 'pending') {
           pendingChores.push({
             kidName: child.name,
@@ -158,7 +123,7 @@ router.get('/:parentId', async (req, res, next) => {
             choreId: chore._id,
             choreTitle: chore.choreTitle,
             dateCompleted: chore.dateCompleted,
-            pointsEarned: chore.pointsEarned,
+            pointsEarned: chore.pointsEarned
           });
         }
       });
@@ -167,7 +132,7 @@ router.get('/:parentId', async (req, res, next) => {
     res.status(200).json({
       message: "Parent Details retrieved successfully",
       parentDetails: parent,
-      pendingChores: pendingChores
+      pendingChores
     });
   } catch (err) {
     next(err);
