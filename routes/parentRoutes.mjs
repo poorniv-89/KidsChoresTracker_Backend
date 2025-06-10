@@ -96,6 +96,56 @@ router.post('/:parentId/chores', async (req, res, next) => {
     next(err);
   }
 })
+//Editing a chore that is already present
+router.put('/:parentId/chores/:choreId', async (req, res, next) => {
+  try {
+    const { parentId, choreId } = req.params;
+    const { title, points } = req.body;
+
+    const parent = await Parent.findById(parentId);
+    if (!parent) {
+      return res.status(404).json({ message: 'Parent not found' });
+    }
+
+    const chore = parent.chores.id(choreId);
+    if (!chore) {
+      return res.status(404).json({ message: 'Chore not found' });
+    }
+
+    if (title !== undefined) chore.title = title;
+    if (points !== undefined) chore.points = points;
+
+    await parent.save();
+
+    res.status(200).json({ message: 'Chore updated successfully', chore });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Deleting a chore by its ID
+router.delete('/:parentId/chores/:choreId', async (req, res, next) => {
+  const { parentId, choreId } = req.params;
+
+  try {
+    const parent = await Parent.findById(parentId);
+    if (!parent) return res.status(404).json({ message: 'Parent not found' });
+
+    const initialLength = parent.chores.length;
+    parent.chores = parent.chores.filter(chore => chore._id.toString() !== choreId);
+
+    if (parent.chores.length === initialLength) {
+      return res.status(404).json({ message: 'Chore not found' });
+    }
+
+    await parent.save();
+
+    res.status(200).json({ message: 'Chore deleted successfully' });
+  } catch (err) {
+    console.error('Error deleting chore:', err);
+    next(err);
+  }
+});
 
 //adding new rewards to an existing parent
 router.get('/:parentId', async (req, res, next) => {
