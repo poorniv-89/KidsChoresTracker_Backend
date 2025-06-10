@@ -104,7 +104,7 @@ router.get('/:parentId', async (req, res, next) => {
 
     // Find parent and populate their kids
     const parent = await Parent.findById(parentId)
-      .populate('kids') 
+      .populate('kids')
       .select('-password');
 
     if (!parent) {
@@ -195,7 +195,7 @@ router.post('/:parentId/approveReward', async (req, res, next) => {
 
 
     const child = await Child.findById(childId);
-    if (!child) 
+    if (!child)
       return next(new Error('Child not found'));
 
     const rewardRequest = child.pendingRewards.find(
@@ -225,6 +225,9 @@ router.post('/:parentId/approveReward', async (req, res, next) => {
       pointsCost: rewardRequest.pointsCost,
       dateRedeemed: new Date()
     });
+    child.pendingRewards = child.pendingRewards.filter(
+      (reward) => reward.rewardId?.toString() !== rewardId
+    );
 
     await child.save();
 
@@ -240,10 +243,14 @@ router.post('/:parentId/approveReward', async (req, res, next) => {
 // Parent rejects a pending chore request
 router.post('/:parentId/rejectChore', async (req, res, next) => {
   try {
-    const { childId, choreId, comment } = req.body;
+    const { childId, choreId, rejectionComment } = req.body;
 
     const child = await Child.findById(childId);
-    if (!child) return next(new Error('Child not found'));
+    if (!child) {
+      const error = new Error('Child not found');
+      error.status = 404;
+      return next(error);
+    }
 
     const choreEntry = child.completedChores.find(c => c._id.toString() === choreId);
 
@@ -252,9 +259,8 @@ router.post('/:parentId/rejectChore', async (req, res, next) => {
     if (choreEntry.approved) {
       return res.status(400).json({ message: 'Chore already approved and cannot be rejected' });
     }
-
-    choreEntry.rejected = true;
-    choreEntry.rejectionComment = comment || '';
+    choreEntry.status = 'rejected';
+    choreEntry.rejectionComment = rejectionComment || '';
     await child.save();
 
     res.status(200).json({ message: 'Chore rejected', rejectionComment: choreEntry.rejectionComment });

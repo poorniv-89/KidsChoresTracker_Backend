@@ -89,11 +89,12 @@ router.put('/:childId/choreComplete', async (req, res, next) => {
       return next(error);
     }
 
-    // Prevent duplicate entry
     const now = new Date();
+
     const alreadyDoneToday = child.completedChores.some((ch) =>
       ch.choreTitle === chore.title &&
-      new Date(ch.dateCompleted).toDateString() === now.toDateString()
+      new Date(ch.dateCompleted).toDateString() === now.toDateString() &&
+      ch.status !== 'rejected' 
     );
 
     if (alreadyDoneToday) {
@@ -102,14 +103,12 @@ router.put('/:childId/choreComplete', async (req, res, next) => {
 
     child.completedChores.push({
       choreTitle: chore.title,
-      dateCompleted: new Date(),
+      dateCompleted: now,
       pointsEarned: chore.points,
-      approved: false,
-      rejected: false
+      status: 'pending'
     });
 
-    // child.points += chore.points;
-       await child.save();
+    await child.save();
 
     res.status(200).json({
       message: 'Chore marked as pending for approval',
@@ -121,7 +120,6 @@ router.put('/:childId/choreComplete', async (req, res, next) => {
     next(error);
   }
 });
-
 //Redeeming rewards for the child and taking away the points
 router.patch('/:childId/redeem', async (req, res, next) => {
   try {
@@ -147,7 +145,7 @@ router.patch('/:childId/redeem', async (req, res, next) => {
       error.status = 404;
       return next(error);
     }
-      child.pendingRewards.push({
+    child.pendingRewards.push({
       rewardId,
       title: reward.title,
       pointsCost: reward.pointsCost,
@@ -156,7 +154,7 @@ router.patch('/:childId/redeem', async (req, res, next) => {
       rejected: false
     });
     await child.save();
-    
+
     res.status(200).json({ message: 'Reward request sent to parent for approval' });
   } catch (error) {
     next(error);
