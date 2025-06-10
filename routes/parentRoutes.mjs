@@ -148,6 +148,26 @@ router.delete('/:parentId/chores/:choreId', async (req, res, next) => {
 });
 
 //adding new rewards to an existing parent
+router.post('/:parentId/rewards', async (req, res, next) => {
+  try {
+    const { parentId } = req.params;
+    const { title, pointsCost } = req.body;
+
+    const parent = await Parent.findById(parentId);
+    if (!parent) {
+      return res.status(404).json({ message: 'Parent not found' });
+    }
+
+    parent.rewards.push({ title, pointsCost });
+    await parent.save();
+
+    res.status(200).json({ message: 'Reward added successfully', rewards: parent.rewards });
+  } catch (err) {
+    next(err);
+  }
+});
+
+//Retrieving parent details foe the parent dashboard
 router.get('/:parentId', async (req, res, next) => {
   try {
     const { parentId } = req.params;
@@ -161,7 +181,6 @@ router.get('/:parentId', async (req, res, next) => {
       return res.status(404).json({ message: 'Parent not found!' });
     }
     const children = parent.kids || [];
-
     const pendingChores = [];
 
     children.forEach(child => {
