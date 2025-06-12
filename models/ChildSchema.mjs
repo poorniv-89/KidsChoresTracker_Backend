@@ -27,6 +27,7 @@ const childSchema = new mongoose.Schema({
         dateRequested: Date,
         approved: { type: Boolean, default: false },
         rejected: { type: Boolean, default: false },
+        rejectionComment: { type: String, default: '' }
       }],
     redeemedRewards: [{
         title: String,

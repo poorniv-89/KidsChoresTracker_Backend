@@ -166,13 +166,11 @@ router.post('/:parentId/rewards', async (req, res, next) => {
     next(err);
   }
 });
-
-//Retrieving parent details foe the parent dashboard
+//Retrieving parent details for the parent dashboard
 router.get('/:parentId', async (req, res, next) => {
   try {
     const { parentId } = req.params;
 
-    // Find parent and populate their kids
     const parent = await Parent.findById(parentId)
       .populate('kids')
       .select('-password');
@@ -180,11 +178,15 @@ router.get('/:parentId', async (req, res, next) => {
     if (!parent) {
       return res.status(404).json({ message: 'Parent not found!' });
     }
+
     const children = parent.kids || [];
+
     const pendingChores = [];
+    const pendingRewards = [];
 
     children.forEach(child => {
-      child.completedChores?.forEach((chore) => {
+      // Pending chores
+      child.completedChores?.forEach(chore => {
         if (chore.status === 'pending') {
           pendingChores.push({
             kidName: child.name,
@@ -196,12 +198,24 @@ router.get('/:parentId', async (req, res, next) => {
           });
         }
       });
+
+      // Pending rewards
+      child.pendingRewards?.forEach(reward => {
+        pendingRewards.push({
+          kidName: child.name,
+          childId: child._id,
+          rewardId: reward.rewardId,
+          title: reward.title,
+          pointsCost: reward.pointsCost
+        });
+      });
     });
 
     res.status(200).json({
       message: "Parent Details retrieved successfully",
       parentDetails: parent,
-      pendingChores
+      pendingChores,
+      pendingRewards
     });
   } catch (err) {
     next(err);
@@ -390,5 +404,33 @@ router.get('/:parentId/tasks', async (req, res, next) => {
     next(err);
   }
 });
+//Rejecting  pending reward
+router.post('/:parentId/rejectReward', async (req, res, next) => {
+  try {
+    const { childId, rewardId, rejectionComment } = req.body;
+
+    const child = await Child.findById(childId);
+    if (!child) return res.status(404).json({ message: 'Child not found' });
+
+    const rewardRequest = child.pendingRewards.find(
+      r => r.rewardId?.toString() === rewardId
+    );
+
+    if (!rewardRequest) {
+      return res.status(404).json({ message: 'Reward request not found' });
+    }
+
+    rewardRequest.rejected = true;
+    rewardRequest.approved = false;
+    rewardRequest.rejectionComment = rejectionComment || '';
+    
+    await child.save();
+
+    res.status(200).json({ message: 'Reward request rejected' });
+  } catch (err) {
+    next(err);
+  }
+});
+
 
 export default router;
