@@ -1,58 +1,135 @@
-**Kids Chore Tracker API**
+# 🧽 ChoreBlasterz — Backend
 
-A Node.js + Express RESTful API for managing a chore and reward system between parents and children. Built using MongoDB and Mongoose, this app allows parents to assign chores and rewards to kids, track completion, and manage point-based redemptions.
-Features
+ChoreBlasterz is a family-focused **chore and reward tracking app** built using the **MERN stack**. The backend is powered by **Node.js**, **Express**, and **MongoDB** to provide secure APIs for managing chores, rewards, and profiles for both parents and children.
 
-**Parent Features**
-Create and manage parent profile
-Add and manage chores (assign points)
-Add and manage rewards (with soft delete support)
-View parent dashboard with chores and rewards
-Create and link child profiles
-Approve or reject completed chores submitted by children
-Approve or reject reward redemption requests
+👉 **[Frontend Repository](https://github.com/poorniv-89/KidsChoresTracker_Frontend)**
 
-**Child Features**
-Create a child profile linked to a parent
-View personal profile, available chores, and rewards
-Complete chores and earn points (pending parent approval)
-Redeem rewards using accumulated points (pending approval)
-View approved/rejected chores and redeemed rewards
-Check available tasks and track current point balance
+---
 
-**__API Routes Table__**
+## 🚀 Tech Stack
 
-**Parent Routes**
+- **Node.js** — JavaScript runtime  
+- **Express.js** — backend framework  
+- **MongoDB** — NoSQL database  
+- **Mongoose** — MongoDB ODM  
+- **JavaScript (ES6+)** — language used  
+- **dotenv** — manage environment variables  
+- **CORS** — enable cross-origin requests  
+- **Thunder Client / Postman** — API testing tools  
 
-| **Method** | **Endpoint**                               | **Description**                                 |
-| ---------- | ------------------------------------------ | ----------------------------------------------- |
-| `POST`     | `/api/parents/`                            | Create a new parent account                     |
-| `GET`      | `/api/parents/:parentId`                   | Retrieve parent profile (excluding password)    |
-| `POST`     | `/api/parents/:parentId/chores`            | Add one or more chores                          |
-| `POST`     | `/api/parents/:parentId/rewards`           | Add one or more rewards                         |
-| `GET`      | `/api/parents/:parentId/tasks`             | Get all chores and rewards                      |
-| `POST`     | `/api/parents/:parentId/approveChore`      | Approve a completed chore from a child          |
-| `POST`     | `/api/parents/:parentId/rejectChore`       | Reject a completed chore with optional comments |
-| `POST`     | `/api/parents/:parentId/approveReward`     | Approve a reward request from a child           |
-| `DELETE`   | `/api/parents/:parentId/rewards/:rewardId` | Soft delete a reward                            |
+---
 
+## 📁 Folder Structure
+📦 backend
+┣ 📂models
+┃ ┣ 📄 parentsSchema.mjs
+┃ ┗ 📄 ChildSchema.mjs
+┣ 📂routes
+┃ ┣ 📄 parentsRoute.js
+┃ ┗ 📄 childRoute.js
+┣ 📄 .env
+┣ 📄 server.js
+┗ 📄 package.json
 
+## 🔑 Features
 
-**Child Routes**
+### 👪 Parent
 
-| **Method** | **Endpoint**                           | **Description**                                     |
-| ---------- | -------------------------------------- | --------------------------------------------------- |
-| `POST`     | `/api/children/`                       | Create a child profile and assign to a parent       |
-| `GET`      | `/api/children/:childId`               | Retrieve child's profile, completed chores & points |
-| `PUT`      | `/api/children/:childId/choreComplete` | Mark a chore as completed                           |
-| `PATCH`    | `/api/children/:childId/redeem`        | Redeem a reward using earned points                 |
-| `GET`      | `/api/children/:childId/available`     | Get available chores and rewards from parent        |
+- Register & Login  
+- Add / Edit / Delete Chores  
+- Add / Delete Rewards  
+- Approve or reject completed chores  
+- Approve or reject reward requests  
+- View dashboard data (kids, pending items)
 
+### 🧒 Child
 
+- Create profile linked to parent  
+- View available chores and rewards  
+- Mark chores as done (pending approval)  
+- Request rewards  
+- View chore/reward history  
 
-**Tech Stack**
-Backend: Node.js, Express.js
-Database: MongoDB + Mongoose
-Language: JavaScript
-HTTP Tool for Testing: Thunder Client
+---
 
+## 🔗 API Routes
+
+### 🔹 Parent Routes
+
+| Method   | Endpoint                                 | Description                           |
+|----------|------------------------------------------|---------------------------------------|
+| POST     | `/api/parents/`                          | Create a new parent account           |
+| POST     | `/api/parents/signin`                    | Parent login                          |
+| GET      | `/api/parents/:parentId`                 | Retrieve parent dashboard data        |
+| POST     | `/api/parents/:parentId/chores`          | Add chore(s) to parent account        |
+| PUT      | `/api/parents/:parentId/chores/:choreId` | Edit a specific chore                 |
+| DELETE   | `/api/parents/:parentId/chores/:choreId` | Delete a specific chore               |
+| POST     | `/api/parents/:parentId/rewards`         | Add new reward(s)                     |
+| DELETE   | `/api/parents/:parentId/rewards/:rewardId` | Soft-delete reward                  |
+| POST     | `/api/parents/:parentId/approveChore`    | Approve child chore completion        |
+| POST     | `/api/parents/:parentId/rejectChore`     | Reject child chore with comment       |
+| POST     | `/api/parents/:parentId/approveReward`   | Approve a reward request              |
+| POST     | `/api/parents/:parentId/rejectReward`    | Reject a reward request               |
+| GET      | `/api/parents/:parentId/tasks`           | Retrieve all chores and rewards       |
+
+### 🔹 Child Routes
+
+| Method   | Endpoint                                   | Description                           |
+|----------|--------------------------------------------|---------------------------------------|
+| POST     | `/api/children/`                           | Create a child profile and link parent |
+| GET      | `/api/children/:childId`                   | Get child profile                     |
+| PUT      | `/api/children/:childId/choreComplete`     | Submit chore for approval             |
+| PATCH    | `/api/children/:childId/redeem`            | Request reward redemption             |
+| GET      | `/api/children/:childId/available`         | Get available chores and rewards      |
+
+---
+
+## ⚙️ Setup Instructions
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/poorniv-89/KidsChoresTracker_Backend.git
+cd KidsChoresTracker_Backend
+
+### 2. Install Dependencies
+
+```bash
+npm install
+
+### 3. Create a `.env` File
+
+Create a `.env` file in the root of your project and add the following:
+
+```env
+PORT=3000
+MONGODB_URI=your_mongo_connection_string
+
+### 4. Start the Server
+
+Run the development server with:
+
+```bash
+npm run dev
+## 🧪 Test Tools
+
+- [**Thunder Client** (VSCode Extension)](https://www.thunderclient.com/)
+
+## 🚀 Stretch Goals
+
+These are future enhancements to make ChoreBlasterz even more powerful and user-friendly:
+
+- ✅ **User Authentication & Authorization**
+  - Use JWT to secure parent and child access
+
+  - 🔔 **Push Notifications**
+  - Notify parents of completed chores or reward requests
+
+- 🧾 **Detailed Activity Log**
+  - Track history of approvals, rejections, and point updates
+
+   💬 **Commenting/Feedback System**
+  - Allow parents to leave feedback on completed chores
+
+- 🧠 **Gamification**
+  - Introduce badges, levels, and progress bars to motivate kids
