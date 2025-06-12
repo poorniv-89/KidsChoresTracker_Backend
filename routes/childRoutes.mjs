@@ -120,6 +120,7 @@ router.put('/:childId/choreComplete', async (req, res, next) => {
     next(error);
   }
 });
+
 //Redeeming rewards for the child and taking away the points
 router.patch('/:childId/redeem', async (req, res, next) => {
   try {
