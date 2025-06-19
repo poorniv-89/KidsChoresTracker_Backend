@@ -26,8 +26,8 @@ router.post('/', async (req, res, next) => {
     await Parent.findByIdAndUpdate(parent, {
       $push: { kids: newChild._id },
     });
-
-    const childLink = `${process.env.VITE_APP_BASE_URL || 'http://localhost:5173'}/child/token/${token}`;
+    console.log(' CLIENT_BASE_URL:', process.env.CLIENT_BASE_URL);
+    const childLink = `${process.env.CLIENT_BASE_URL || 'http://localhost:5173'}/child/token/${token}`;
 
     res.status(201).json({
       message: 'Child created successfully!',
