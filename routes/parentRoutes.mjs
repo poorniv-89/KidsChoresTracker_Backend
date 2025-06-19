@@ -1,32 +1,45 @@
 import express from 'express';
+import jwt from 'jsonwebtoken';
+import bcrypt from 'bcrypt';
+import dotenv from 'dotenv';
 import Parent from '../models/parentsSchema.mjs';
 import Child from '../models/ChildSchema.mjs';
+import { generateToken } from '../Utilities/jwt.mjs';
+import { authenticateToken } from '../middlewares/auth.mjs'; 
 
 const router = express.Router();
+dotenv.config();
+const JWT_SECRET = process.env.JWT_SECRET;
 
 //Adding new parent
 router.post('/', async (req, res, next) => {
   try {
-    const existingParent = await Parent.findOne({ email: req.body.email });
+    const { name, email, password } = req.body;
+
+    const existingParent = await Parent.findOne({ email });
     if (existingParent) {
-      const error = new Error('You are already a registered user!');
-      error.status = 400;
-      return next(error);
+      return res.status(400).json({ message: 'You are already a registered user!' });
     }
 
-    const newParent = new Parent(req.body);
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const newParent = new Parent({ name, email, password: hashedPassword });
     await newParent.save();
+
+    const token = jwt.sign({ id: newParent._id, role: 'parent' }, JWT_SECRET, {
+      expiresIn: '1h',
+    });
 
     res.status(201).json({
       message: 'New user created!',
+      token, 
       parent: {
         id: newParent._id,
         name: newParent.name,
         email: newParent.email
       }
     });
-  }
-  catch (err) {
+  } catch (err) {
     next(err);
   }
 });
@@ -38,19 +51,19 @@ router.post('/signin', async (req, res, next) => {
 
     const parent = await Parent.findOne({ email });
     if (!parent) {
-      const error = new Error('Parent not found');
-      error.status = 404;
-      return next(error);
+      return res.status(404).json({ message: 'Parent not found' });
     }
 
-    if (parent.password !== password) {
-      const error = new Error('Invalid credentials');
-      error.status = 401;
-      return next(error);
+    const isMatch = await bcrypt.compare(password, parent.password);
+    if (!isMatch) {
+      return res.status(401).json({ message: 'Invalid credentials' });
     }
+
+    const token = generateToken({ id: parent._id, role: 'parent' });
 
     res.status(200).json({
       message: 'Login successful',
+      token,
       parent: {
         id: parent._id,
         name: parent.name,
@@ -61,7 +74,6 @@ router.post('/signin', async (req, res, next) => {
     next(err);
   }
 });
-
 
 //Adding new chores to existing parent 
 router.post('/:parentId/chores', async (req, res, next) => {
@@ -167,12 +179,12 @@ router.post('/:parentId/rewards', async (req, res, next) => {
   }
 });
 //Retrieving parent details for the parent dashboard
-router.get('/:parentId', async (req, res, next) => {
+router.get('/:parentId', authenticateToken, async (req, res, next) => {
   try {
     const { parentId } = req.params;
 
     const parent = await Parent.findById(parentId)
-      .populate('kids')
+    .populate('kids', 'name points completedChores pendingRewards publicLinkToken')
       .select('-password');
 
     if (!parent) {
@@ -199,15 +211,17 @@ router.get('/:parentId', async (req, res, next) => {
         }
       });
 
-      // Pending rewards
+      // Pending rewards (filter out approved or rejected)
       child.pendingRewards?.forEach(reward => {
-        pendingRewards.push({
-          kidName: child.name,
-          childId: child._id,
-          rewardId: reward.rewardId,
-          title: reward.title,
-          pointsCost: reward.pointsCost
-        });
+        if (!reward.approved && !reward.rejected) {
+          pendingRewards.push({
+            kidName: child.name,
+            childId: child._id,
+            rewardId: reward.rewardId,
+            title: reward.title,
+            pointsCost: reward.pointsCost
+          });
+        }
       });
     });
 
@@ -391,18 +405,20 @@ router.post('/:parentId/rejectReward', async (req, res, next) => {
     const child = await Child.findById(childId);
     if (!child) return res.status(404).json({ message: 'Child not found' });
 
-    const rewardRequest = child.pendingRewards.find(
+    const rewardIndex = child.pendingRewards.findIndex(
       r => r.rewardId?.toString() === rewardId
     );
 
-    if (!rewardRequest) {
+    if (rewardIndex === -1) {
       return res.status(404).json({ message: 'Reward request not found' });
     }
 
-    rewardRequest.rejected = true;
-    rewardRequest.approved = false;
-    rewardRequest.rejectionComment = rejectionComment || '';
-    
+    child.pendingRewards[rewardIndex].rejected = true;
+    child.pendingRewards[rewardIndex].approved = false;
+    child.pendingRewards[rewardIndex].rejectionComment = rejectionComment || '';
+
+    child.markModified('pendingRewards');
+
     await child.save();
 
     res.status(200).json({ message: 'Reward request rejected' });
@@ -410,6 +426,5 @@ router.post('/:parentId/rejectReward', async (req, res, next) => {
     next(err);
   }
 });
-
 
 export default router;
